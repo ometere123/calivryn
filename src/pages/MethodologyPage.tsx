@@ -1,0 +1,21 @@
+import { Activity, ArrowLeft, ArrowRight, BookOpenCheck, Calculator, Cloud, FileCheck2, Github, LockKeyhole, ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { PublicHeader, PageHeading } from '../components/site/Shared';
+import { DISCLAIMER, MODEL_ID } from '../../shared/calibration';
+
+export default function MethodologyPage() {
+  return <div className="public-page methodology-page"><PublicHeader /><main className="container methodology-main">
+    <Link className="back-link" to="/"><ArrowLeft size={15} /> Back to Calivryn</Link>
+    <PageHeading eyebrow="METHOD / BOUNDARIES / RESPONSIBILITY" title="A report is only as defensible as its evidence.">Calivryn separates arithmetic, interpretation and human accountability so each part can be inspected on its own terms.</PageHeading>
+    <div className="methodology-grid">
+      <article className="method-card method-card-wide"><Calculator size={22} /><div><h2>Deterministic measurement method</h2><p>For each point, Calivryn calculates the signed error as measured reading minus reference, then calculates its absolute value. A point is within tolerance when that absolute error is less than or equal to the positive tolerance supplied by the technician.</p><div className="formula-list"><div><span>signed error</span><strong>measured − reference</strong></div><div><span>absolute error</span><strong>|signed error|</strong></div><div><span>overall result</span><strong>every point within its own tolerance</strong></div></div></div></article>
+      <article className="method-card"><ShieldCheck size={22} /><h2>Why decimal.js</h2><p>Readings remain finite plain decimal strings and are recalculated with decimal.js in the browser and Worker. Exact boundary comparisons avoid binary floating-point surprises. The browser preview is useful, but the Worker calculation is authoritative.</p></article>
+      <article className="method-card"><Cloud size={22} /><h2>What Gemma does</h2><p>The Worker sends sanitized structured evidence and untrusted technician notes to Cloudflare Workers AI using <code>{MODEL_ID}</code>. Gemma drafts a summary, point-referenced observations and review actions. It cannot set pass/fail, select a standard, invent readings or certify an instrument.</p></article>
+      <article className="method-card"><BookOpenCheck size={22} /><h2>Human review is a gate</h2><p>The technician can edit the generated language, must acknowledge the report and remains responsible for units, traceability, methods, uncertainty, acceptance criteria and every statement before sharing the PDF.</p></article>
+      <article className="method-card"><LockKeyhole size={22} /><h2>Privacy and provider boundary</h2><p>Until analysis, the report stays in browser memory. Analysis data is transmitted to Cloudflare for inference. Provider terms, operational logging and retention policies remain applicable. Calivryn does not promise local-only processing or zero provider-side retention.</p></article>
+      <article className="method-card method-card-wide method-warning"><FileCheck2 size={22} /><div><h2>Report limitations</h2><p>{DISCLAIMER}</p></div></article>
+    </div>
+    <div className="methodology-actions"><Link className="button-primary" to="/app/capture">Launch workspace <ArrowRight size={16} /></Link><a className="button-ghost" href="https://github.com/ometere123/Calivryn" target="_blank" rel="noopener noreferrer"><Github size={16} /> Read the open-source implementation</a></div>
+    <div className="methodology-docs"><span>Technical reading</span><a href="https://github.com/ometere123/Calivryn/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener noreferrer">Architecture</a><a href="https://github.com/ometere123/Calivryn/blob/main/docs/SECURITY.md" target="_blank" rel="noopener noreferrer">Security</a><a href="https://github.com/ometere123/Calivryn/blob/main/docs/TEST_PLAN.md" target="_blank" rel="noopener noreferrer">Test plan</a></div>
+  </main><footer className="public-footer"><div className="container"><span className="footer-brand"><Activity size={18} /> calivryn.</span><span>Not an accredited certificate or safety authority.</span><Link to="/">Home <ArrowRight size={14} /></Link></div></footer></div>;
+}
