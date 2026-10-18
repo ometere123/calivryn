@@ -35,7 +35,10 @@ export const pointSchema = z.object({
   reference: decimalText,
   as_found: decimalText,
   as_left: decimalText,
-  tolerance: decimalText.refine(value => new Decimal(value).greaterThan(0), 'Absolute tolerance must be greater than zero'),
+  tolerance: decimalText.refine(value => {
+    try { return new Decimal(value).greaterThan(0); }
+    catch { return false; }
+  }, 'Absolute tolerance must be greater than zero'),
 }).strict();
 
 export const reportInputSchema = z.object({
