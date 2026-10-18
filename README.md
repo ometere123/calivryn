@@ -2,62 +2,83 @@
 
 **Precision is measured. Clarity is generated.**
 
-[Live application](https://calivryn.delealufejoel.workers.dev) · [Source repository](https://github.com/ometere123/Calivryn) · [Live smoke evidence](docs/evidence/live-smoke.json)
+[Open the production application](https://calivryn.delealufejoel.workers.dev) · [View the source repository](https://github.com/ometere123/Calivryn) · [Read the live smoke evidence](docs/evidence/live-smoke.json)
 
-Calivryn is an open-source, AI-assisted calibration service-report preparation tool for independent instrumentation and calibration technicians. It turns a CSV of reference readings into a deterministic, evidence-linked, technician-reviewed PDF report.
+Calivryn is an open-source, AI-assisted calibration service-report preparation application for independent instrumentation and calibration technicians. It turns a CSV of readings into a deterministic, evidence-linked, technician-reviewed PDF report.
 
-Calivryn is not an accredited calibration certificate generator, safety-to-operate authority, measurement-uncertainty calculator, or autonomous metrological approval system. A qualified technician remains responsible for the supplied tolerances, source records, interpretation, and final report.
+It is not an accredited calibration certificate generator, safety-to-operate authority, measurement-uncertainty calculator, or autonomous metrological approval system. A qualified technician remains responsible for the source records, supplied tolerances, interpretation, and final report.
 
 ## Why this exists
 
-Small calibration and instrumentation teams often move from field readings to a client-facing service report by copying values between spreadsheets, calculating deviations manually, and writing a narrative from memory. That workflow is repetitive and makes it easy to lose a signed error, misread a tolerance boundary, or let prose outrun the evidence.
+After a field or bench check, a small calibration team still has to move from readings to a client-facing service report. Copying values between spreadsheets, calculating deviations manually, and writing the explanation from memory makes it easy to lose a sign, misread an exact tolerance boundary, or let prose outrun the evidence.
 
-Calivryn keeps the high-integrity part deterministic: the browser and Worker independently calculate every error and tolerance result with `decimal.js`. Gemma is used only to turn the trusted calculation and untrusted technician notes into concise, point-referenced language. The technician edits and acknowledges the narrative before a PDF can be exported.
+Calivryn keeps the numerical decision deterministic and gives the technician a focused review gate before export. The target customer is an independent calibration technician, instrumentation contractor, or small service team. A believable pricing hypothesis is a low-cost pay-per-report or small monthly workspace plan priced below the time saved on repetitive report preparation. There are no paying-customer, revenue, or production calibration-record claims in this repository.
 
-The target customer is an independent calibration technician, instrumentation contractor, or small service team. A believable pricing hypothesis is a low-cost pay-per-report or small monthly workspace plan priced below the time saved on report preparation; there are no paying customers or revenue claims in this repository.
+## The seven-route application
 
-## Product workflow
+The product is a dedicated landing page, five report-workspace views, and a methodology page. The workspace is one in-memory session shared by the five `/app/*` routes.
 
-1. **Capture** — upload a real CSV, download a template, or load the clearly labelled synthetic demonstration dataset. Enter required job, instrument, unit, date, and technician-note metadata.
-2. **Verify** — edit 1–40 points in a shared engineering unit and inspect exact signed errors, absolute errors, as-found/as-left tolerance status, and improvement/deterioration.
+| Route | Purpose |
+| --- | --- |
+| `/` | Concise product landing page, customer problem, five-stage boundary, and links into the workspace, methodology, and source. |
+| `/app/capture` | CSV upload, downloadable template, synthetic demonstration data, job/instrument metadata, and technician notes. |
+| `/app/verify` | Editable 1–40 point table, exact signed/absolute errors, tolerance checks, summary metrics, and validation errors. |
+| `/app/analyse` | Real Cloudflare Workers AI request using the pinned Gemma 4 model, with loading, evidence, and provider-failure states. |
+| `/app/review` | Editable summary, point-referenced observations, technician follow-up actions, and explicit acknowledgement. |
+| `/app/export` | Report preview, export eligibility, browser-generated PDF, and start-a-new-report action. |
+| `/methodology` | Calculation, AI boundary, human responsibility, privacy, and technical-method explanation. |
+
+The application shell provides a shared header, desktop sidebar, compact mobile navigation, active-route indicators, completion states, contextual status, consistent errors, focusable scroll regions, and scroll-to-top on route changes. React Router 7 handles real browser routes, so browser Back and Forward preserve a valid session while the application remains mounted.
+
+Report state is deliberately held in memory only. A full reload of a nested workspace route starts a fresh session and safely redirects to Capture with an explanation. The application never reconstructs fake results, uses localStorage/sessionStorage/cookies, or stores reports on the server. Editing source readings or relevant metadata invalidates analysis, narrative edits, review acknowledgement, and export eligibility.
+
+## Capture → Verify → Analyse → Review → Export
+
+1. **Capture** — import a real CSV, download the standard template, or load the clearly labelled synthetic dataset. Enter required job, instrument, date, shared unit, and technician-note metadata.
+2. **Verify** — edit 1–40 points in one engineering unit. Inspect precise signed errors, absolute errors, as-found/as-left tolerance status, and improvement or deterioration.
 3. **Analyse** — send validated evidence and untrusted notes to the native Cloudflare `env.AI.run()` binding using `@cf/google/gemma-4-26b-a4b-it`.
-4. **Review** — edit the summary, point-referenced observations, and review actions; explicitly acknowledge technician review.
-5. **Export** — generate a multi-page PDF in the browser containing metadata, every reading, full-precision calculated results, grounded interpretation, notes, model provenance, acknowledgement, and limitations.
+4. **Review** — edit the model's summary, point-referenced observations, and review items. A technician must acknowledge the narrative.
+5. **Export** — generate a complete, multi-page PDF in the browser with metadata, every reading, full-precision results, evidence-linked interpretation, notes, provenance, acknowledgement, and limitations.
 
-Changing source readings or relevant metadata invalidates previous analysis and approval. The Worker recalculates independently and refuses malformed, ungrounded, or provider-failure responses.
+Gemma never determines numerical pass/fail, invents measurements, selects acceptance standards, or certifies equipment. The browser previews the calculation and the Worker independently validates and recalculates it. The browser compares the returned calculation with its own result before Review, and the PDF exporter checks again before export.
 
 ## Screenshots
 
-These screenshots were captured from the real Vite application with the synthetic dataset; they are interface evidence, not customer records.
+These screenshots are captured from the real application using the synthetic demonstration dataset. They are interface evidence, not customer records.
+
+![Calivryn landing page on desktop](docs/screenshots/home-desktop.png)
 
 ![Calivryn capture view on desktop](docs/screenshots/capture-desktop.png)
 
-![Calivryn verification view on mobile](docs/screenshots/verify-mobile.png)
+![Calivryn verification table on mobile](docs/screenshots/verify-mobile.png)
+
+Additional [desktop, tablet, and mobile captures](docs/screenshots) and the [recording plan](docs/DEMO_PLAN.md) are included for a truthful demonstration.
 
 ## Architecture and locked stack
 
 ```text
-React + Vite + Tailwind browser UI
+React + React Router 7 + Vite + Tailwind CSS browser UI
+  ├─ in-memory SessionProvider shared by the five workspace routes
   ├─ PapaParse CSV input + Zod validation
-  ├─ decimal.js deterministic preview
+  ├─ decimal.js deterministic calculation preview
   ├─ same-origin POST /api/analyze
   │    └─ Cloudflare Worker
-  │         ├─ request/origin/size checks
-  │         ├─ Zod validation + independent decimal.js calculation
+  │         ├─ origin, media-type, UTF-8 and request-size checks
+  │         ├─ strict Zod validation + independent decimal.js calculation
   │         ├─ Cloudflare rate-limit bindings
   │         └─ native env.AI.run(@cf/google/gemma-4-26b-a4b-it)
-  └─ jsPDF browser export after human acknowledgement
+  └─ jsPDF browser export after technician acknowledgement
 ```
 
-The deployed Worker and Static Assets are one Cloudflare application using the official Cloudflare Vite plugin. There is no database, authentication, report history, persistent storage, external AI API, Vercel, Railway, Ollama, blockchain, payment flow, or paid infrastructure in this project.
+The Worker and React Static Assets are deployed as one Cloudflare application using the official Cloudflare Vite plugin and project-local Wrangler. There is no database, authentication, report history, external AI API, Vercel, Railway, Ollama, blockchain, payment flow, or paid infrastructure.
 
-Technology: TypeScript, React 19, Vite 7, Tailwind CSS 4, Cloudflare Workers/Static Assets, Workers AI, PapaParse, `decimal.js`, Zod, jsPDF, Vitest 5, Playwright, npm, Wrangler 4, and GitHub Actions.
+Technology: TypeScript, React 19, React Router 7, Vite 7, Tailwind CSS 4, Cloudflare Workers/Static Assets, Workers AI, PapaParse, `decimal.js`, Zod, jsPDF, Vitest 5, Playwright, npm, Wrangler 4, and GitHub Actions.
 
 See [the architecture notes](docs/ARCHITECTURE.md) and [security and metrological boundaries](docs/SECURITY.md).
 
 ## Deterministic calculation method
 
-For each point:
+For every point:
 
 ```text
 signed error      = measured reading - reference
@@ -67,7 +88,7 @@ change            = improved | unchanged | deteriorated
 overall result    = every point is within its own tolerance
 ```
 
-The supported input grammar is finite, plain decimal text with up to 12 integer digits and 8 fractional digits. Scientific notation, `NaN`, `Infinity`, blank numbers, zero/negative tolerances, duplicate point IDs (including case variants), and unexpected object properties are rejected. Exact boundaries are compared with `decimal.js`; the AI does not select pass/fail or invent readings.
+`decimal.js` is used in the browser and Worker so exact boundaries, negative readings, and very small permitted decimals are compared without binary floating-point surprises. Scientific notation, `NaN`, `Infinity`, blank numbers, zero/negative tolerances, duplicate or case-variant point IDs, unexpected properties, and out-of-range data are rejected. No model response can override the calculation.
 
 ## CSV format
 
@@ -79,7 +100,7 @@ P00,0,0.11,0.01,0.05
 P25,2.5,2.59,2.52,0.05
 ```
 
-Limits: 1–40 rows, 30 KB maximum, unique point IDs, one shared engineering unit, positive absolute tolerances, and no implicit percentage or full-scale conversion. Units support common Unicode engineering notation such as `mΩ/°C·s⁻¹` and are printed in the PDF without numerical rounding.
+Limits are 1–40 rows and 30 KB per CSV. IDs are unique case-insensitively. Every point uses the one engineering unit supplied in the job metadata. Tolerances are positive absolute values in that same unit. Units support common Unicode engineering notation such as `mΩ/°C·s⁻¹` and are printed without numerical rounding.
 
 ## API contract
 
@@ -87,7 +108,7 @@ All API responses are JSON, `Cache-Control: no-store`, and served from the same 
 
 ### `GET /api/health`
 
-Returns routing/configuration metadata, for example:
+Returns routing/configuration metadata:
 
 ```json
 {
@@ -98,46 +119,29 @@ Returns routing/configuration metadata, for example:
 }
 ```
 
-This endpoint does not call the model and is not proof of inference compatibility.
+Health does not call the model and is not proof of live inference compatibility.
 
 ### `POST /api/analyze`
 
-Request body:
+Accepts `{ metadata, points }` using the CSV grammar above. A successful response contains `model`, `generatedAt`, an authoritative `calculation`, and a schema-validated `narrative` with a summary, point-ID observations, and point-ID review items. Technician notes are sent as untrusted context.
 
-```json
-{
-  "metadata": {
-    "client": "string",
-    "project": "string",
-    "instrumentId": "string",
-    "instrumentType": "string",
-    "technician": "string",
-    "date": "YYYY-MM-DD",
-    "unit": "bar",
-    "notes": "untrusted technician context"
-  },
-  "points": [
-    { "point_id": "P00", "reference": "0", "as_found": "0.11", "as_left": "0.01", "tolerance": "0.05" }
-  ]
-}
-```
+The Worker returns explicit failures: `400` malformed JSON/UTF-8, `403` unauthorized origin, `413` oversized body, `415` wrong content type, `422` invalid report, `429` rate limited, `502` malformed or ungrounded model output, and `503` unavailable provider/configuration. Provider stack traces and report contents are not returned or logged by application code.
 
-Success returns `model`, `generatedAt`, an authoritative `calculation`, and a validated `narrative` with `summary`, point-ID `observations`, and point-ID `reviewItems`. Errors are explicit: `400` malformed JSON/UTF-8, `403` unauthorized origin, `413` over 45 KB, `415` wrong content type, `422` invalid report, `429` rate limited, `502` malformed/ungrounded model output, and `503` unavailable provider or configuration.
+The coarse IP limiter and shared edge throttle are abuse controls, not a guaranteed account-wide daily spending cap. Cloudflare location-level behaviour and provider quotas can vary.
 
-The Worker never returns provider stack traces or confidential request data. It does not log report contents in application code. The coarse IP limiter and shared edge throttle are abuse controls, not a guaranteed account-wide daily spending cap; Cloudflare location-level behavior and provider quotas can vary.
+## Privacy, security, and limits
 
-## Privacy and safety
-
-- Measurements, metadata, and notes stay in browser memory until analysis is requested.
-- Analysis data is transmitted to Cloudflare Workers AI. Cloudflare/provider retention and logging policies remain applicable; Calivryn does not promise local-only processing or zero provider-side retention.
-- No report database, account system, analytics, localStorage persistence, or report history is implemented.
-- Technician notes are explicitly untrusted prompt data. The model has no tools, cannot change the calculation, and must cite existing point IDs. React escapes rendered text, strict schemas reject extra response properties, and the PDF exporter revalidates the narrative.
+- Readings, metadata, and notes stay in browser memory until analysis is requested.
+- Analysis data is transmitted to Cloudflare Workers AI. Cloudflare and model-provider retention, logging, and processing policies remain applicable. Calivryn does not claim local-only processing or zero provider-side retention.
+- React renders user and model text as escaped text. There are no embedded credentials, client-side secrets, unsafe HTML sinks, or unwanted external requests.
+- Strict schemas, request-size limits, media-type enforcement, origin protection, rate limiting, response validation, point-ID grounding, security headers, and fail-closed provider errors are implemented.
+- No report database, account system, analytics store, cookie, persistent report history, or server-side report storage exists.
 - The PDF is service-report preparation only. It does not establish traceability, uncertainty, accreditation, standards selection, compliance, or safe operation.
-- Do not upload identifiable, confidential, or proprietary customer data without appropriate permission and a review of the provider terms.
+- Do not upload identifiable, confidential, or proprietary customer data without appropriate permission and a privacy review.
 
 See [docs/SECURITY.md](docs/SECURITY.md) for the threat model, adversarial cases, resource restrictions, and residual risk.
 
-## Local development
+## Local development and tests
 
 Requirements: Node.js 22+ and npm.
 
@@ -152,11 +156,13 @@ npm audit --omit=dev
 npm audit
 ```
 
-`npm run test` covers deterministic math, CSV parsing, Worker validation/model failure handling, and PDF safety. `npm run test:e2e` is a credential-free Playwright suite that intercepts the model response; it does not claim live inference. `npm run screenshots` captures the documented local interface at desktop and mobile viewports.
+`npm run test` covers deterministic mathematics, CSV parsing, Worker validation and failure handling, model-response grounding, review invalidation, and PDF safety. `npm run test:e2e` is a credential-free Playwright suite with intercepted responses; it is not live inference evidence. `npm run screenshots` captures the public and initial workspace routes locally at desktop, tablet, and mobile widths. `npm run live-smoke` is the separate production evidence command and makes one genuine model call.
+
+The verified local source currently has 29 passing Vitest tests across four files and 3 passing Playwright tests. TypeScript, the production build, and both npm audit modes pass with zero vulnerabilities. GitHub Actions runs the same lockfile-based install, checks, build, and browser suite.
 
 ## Cloudflare deployment
 
-The committed `wrangler.jsonc` uses the native AI binding, two simple rate-limit bindings, Static Assets SPA routing, and observability with query-string redaction. The deploy command is reproducible from the lockfile:
+The committed `wrangler.jsonc` configures the native AI binding, Static Assets SPA fallback, two simple rate-limit bindings, and redacted observability. Reproduce deployment with:
 
 ```bash
 npm ci
@@ -164,37 +170,33 @@ npx wrangler login
 npm run deploy
 ```
 
-Deployment does not create billing or paid services. Confirm the account plan and Workers AI allocation in the Cloudflare dashboard before operational use; the deployment evidence in this repository does not infer a plan from a successful upload. The current public URL is [calivryn.delealufejoel.workers.dev](https://calivryn.delealufejoel.workers.dev).
+The public application is [calivryn.delealufejoel.workers.dev](https://calivryn.delealufejoel.workers.dev). Deployment does not enable billing or paid overages. The current release was operated without intentionally provisioning paid services; the operator must still confirm the account plan and Workers AI allocation in Cloudflare. A missing billing-read permission prevents an independent API confirmation of the account plan, so this repository does not claim more than the available account evidence.
 
-For a genuine release smoke test against that URL:
+For a genuine release smoke test:
 
 ```bash
 npm run live-smoke
 ```
 
-The script loads the synthetic sample in a real browser, calls the live Worker/AI binding, validates the returned model result, acknowledges review, downloads the PDF, checks origin/content-type failures, and records a safe rate-limit sequence. It does not induce a provider outage. The recorded evidence is [docs/evidence/live-smoke.json](docs/evidence/live-smoke.json) and [the exported PDF](docs/evidence/live-smoke-report.pdf).
+The script checks the seven SPA routes, loads the synthetic dataset in a real browser, calls the live Worker/AI binding, records the exact model and calculation, captures responsive screens, acknowledges review, downloads the PDF, and probes origin/content-type protections plus a small safe request sequence. It does not induce a provider outage or claim that a non-429 sequence proves an account-wide quota. Evidence is stored in [docs/evidence/live-smoke.json](docs/evidence/live-smoke.json) and [docs/evidence/live-smoke-report.pdf](docs/evidence/live-smoke-report.pdf).
 
-## Verification evidence
+## Release and submission evidence
 
-The verified local candidate currently has:
-
-- 29 passing Vitest tests across four files, including deterministic boundary cases, CSV input, Worker failure paths, prompt-injection resistance, review invalidation, and PDF generation.
-- 3 passing Playwright browser tests covering sample import, unavailable-model recovery, human review, and browser PDF download.
-- Passing TypeScript checks and production build.
-- `npm audit --omit=dev` and `npm audit` reporting zero vulnerabilities after updating jsPDF and Vitest to fixed published versions.
-- Live deployed analysis with model `@cf/google/gemma-4-26b-a4b-it`, five synthetic points, `OUTSIDE` as-found, `WITHIN` as-left, grounded observations, and a 7,581-byte two-page PDF export. See the dated evidence files above.
-
-The GitHub Actions workflow runs `npm ci`, typecheck, unit tests, build, and Playwright browser tests. The final CI run and merged source commit are linked from the repository's [Actions page](https://github.com/ometere123/Calivryn/actions) and the release closeout.
+- [GitHub Actions](https://github.com/ometere123/Calivryn/actions) — source-matched CI history.
+- [Live smoke JSON](docs/evidence/live-smoke.json) — model, route, calculation, failure, and export evidence.
+- [Generated sample PDF](docs/evidence/live-smoke-report.pdf) — browser export from the synthetic workflow.
+- [Screenshots](docs/screenshots) — real landing, workspace, responsive, review, and export views.
+- [Final technical test plan](docs/TEST_PLAN.md) and [security record](docs/SECURITY.md).
+- [DEV submission copy](docs/DEV_SUBMISSION.md) and [authentic demonstration plan](docs/DEMO_PLAN.md).
 
 ## DEV Hacktoberfest Week 2 submission
 
-The ready-to-publish English article follows the official sections—What I Built, Demo, Code, How I Built It, Why Does Open Innovation Matter?, My Agent Session, My First User, and Prize Categories—without inventing customers or contest outcomes:
+The ready-to-publish article follows the official Week 2 submission structure: What I Built, Demo, Code, How I Built It, Why Does Open Innovation Matter?, My Agent Session, and Prize Categories. It explains the customer problem, a pricing hypothesis, the real production evidence, the engineering failures that were fixed, and the honest limitations.
 
 - [Complete DEV submission copy](docs/DEV_SUBMISSION.md)
-- [Demonstration recording plan](docs/DEMO_PLAN.md)
-
-The intended categories are the overall **Side Hustle** award and **Best Use of Gemma**, subject to DEV's rules and judge eligibility. The article uses `#devchallenge` and `#hf26challenge`. It does not claim a paying customer, calibration record, guaranteed eligibility, or victory.
+- [Demonstration plan](docs/DEMO_PLAN.md)
+- Intended category targets: overall **Side Hustle** and **Best Use of Gemma**, without claiming eligibility, judging outcome, customer adoption, or victory.
 
 ## Licence and model terms
 
-Project-owned source is MIT-licensed in [LICENSE](LICENSE). Google's Gemma weights, usage conditions, and Cloudflare Workers AI service terms are separate and are not relicensed by this repository. Review the current [Gemma terms](https://ai.google.dev/gemma/terms) and [Cloudflare model documentation](https://developers.cloudflare.com/workers-ai/models/gemma-4-26b-a4b-it/) before commercial use.
+Project-owned source is MIT-licensed in [LICENSE](LICENSE). Google's Gemma weights, usage conditions, and Cloudflare Workers AI service terms are separate and are not relicensed by this repository. Review the current [Gemma terms](https://ai.google.dev/gemma/terms) and [Cloudflare Gemma 4 documentation](https://developers.cloudflare.com/workers-ai/models/gemma-4-26b-a4b-it/) before commercial use.

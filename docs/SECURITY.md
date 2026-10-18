@@ -4,23 +4,24 @@ Calivryn prepares a technician-reviewed service report. It is not an accredited 
 
 ## Controls implemented
 
-- React renders user and model text as escaped text; there is no `dangerouslySetInnerHTML`, external script, credential, or client-side secret.
+- The seven-route React UI uses ordinary escaped text rendering. It has no `dangerouslySetInnerHTML`, embedded credential, client-side secret, analytics call, or unwanted external request.
+- The persistent workspace shell contains one in-memory `SessionProvider`. It uses no localStorage, sessionStorage, cookie, database, account, or report-history mechanism. A hard reload intentionally discards the session and guarded routes redirect to Capture.
 - Static Assets and API responses set restrictive security headers. The API also uses `no-store`, `nosniff`, no-referrer, frame denial, a restrictive CSP, and a restrictive Permissions Policy.
 - CSV import accepts only the five required fields, enforces a 30 KB file limit, rejects parser errors, validates every row, and rejects duplicate IDs including case variants.
 - Zod strict schemas reject unexpected JSON properties, malformed dates, blank values, scientific notation, `NaN`, `Infinity`, zero/negative tolerances, unsupported unit characters, and out-of-range text/point counts.
-- The Worker streams and caps the request body at 45 KB, requires an exact `application/json` media type, rejects invalid UTF-8, checks a supplied Origin against the request origin, and recalculates with `decimal.js` before AI execution.
-- Cloudflare simple rate-limit bindings provide a coarse per-IP throttle and a shared edge throttle. They are abuse controls, not an account-wide daily budget guarantee.
+- The Worker streams and caps the request body at 45 KB, requires exact `application/json`, rejects invalid UTF-8, checks a supplied Origin against the request origin, and recalculates with `decimal.js` before AI execution.
+- Cloudflare simple rate-limit bindings provide coarse per-IP and shared-edge throttles. They are abuse controls, not an account-wide spending or neuron budget guarantee.
 - Technician notes are untrusted prompt data. Gemma has no tools and receives no credentials. Its response must be strict JSON, cite existing point IDs, stay inside bounded fields, and pass schema validation.
-- Model prose cannot replace the authoritative calculation. The browser compares the Worker calculation to a fresh local calculation, and the PDF exporter recalculates and compares again.
-- Source and relevant metadata edits invalidate analysis, edited approval, and prior export state. Export requires explicit technician acknowledgement.
+- Model prose cannot replace the authoritative calculation. The browser compares the Worker result to a fresh local calculation, and the PDF exporter recalculates and compares again.
+- Source and relevant metadata edits invalidate analysis, edited narrative, approval, and export state. Export requires explicit technician acknowledgement.
 - Provider errors, malformed output, quota errors, and invalid citations fail closed. No placeholder narrative or provider stack trace is returned.
-- PDF text is escaped/sanitized for control characters, dynamically wrapped, and printed at entered/calculated precision. No PDF JavaScript, forms, URLs, or embedded remote content are used.
+- PDF text is escaped/sanitised for control characters, dynamically wrapped, and printed at entered/calculated precision. No PDF JavaScript, forms, URLs, or embedded remote content are used.
 
 ## Adversarial coverage
 
 The test suite covers exact tolerance boundaries, negative readings, tiny permitted decimals, duplicate/case-variant IDs, blank values, invalid dates, non-finite values, scientific notation, zero/negative tolerances, 1–40 point bounds, unexpected properties, wrong media type, oversized bodies, hostile origins, malformed UTF-8, throwing provider bindings, malformed model JSON, phantom point IDs, contradictory technician notes, authoritative math preservation, review invalidation, and multi-page PDF output.
 
-The live smoke run used the synthetic dataset against the public Worker and verified the actual model ID, grounded narrative, review acknowledgement, browser download, hostile-origin rejection, and wrong-content-type rejection. It did not induce a real provider outage. Provider failure is covered by the throwing-binding Worker regression test, which returns a safe `503`.
+The browser suite additionally checks premature route access, hard-reload reset behaviour, browser history, responsive navigation, provider failure presentation, malformed browser responses, and PDF export. The live smoke run checks the public route fallback, exact model ID, grounded narrative, review acknowledgement, browser download, hostile-origin rejection, and wrong-content-type rejection. It does not induce a live provider outage.
 
 ## Privacy and retention
 
@@ -30,7 +31,7 @@ Calivryn stores no reports, accounts, identifiers, cookies, analytics, or report
 
 ## Abuse and resource limitations
 
-Request caps and edge rate limits reduce accidental or abusive consumption. The limits are approximate and location-scoped; they cannot enforce an exact account-wide daily neuron or spending cap, distinguish people behind shared IPs, or guarantee provider availability. Cloudflare Workers AI capacity and free allocation can interrupt service. Do not enable paid overages as part of this repository.
+Request caps and edge rate limits reduce accidental or abusive consumption. The limits are approximate and location-scoped; they cannot enforce an exact account-wide daily neuron or spending cap, distinguish people behind shared IPs, or guarantee provider availability. Cloudflare Workers AI capacity and free allocation can interrupt service. The project does not enable paid overages.
 
 ## Residual risk
 
@@ -48,4 +49,4 @@ npm audit
 npm run live-smoke
 ```
 
-The last command requires a deployed Worker and writes dated synthetic evidence under `docs/evidence/`; it does not prove account plan status or induce a provider outage.
+The last command requires the deployed Worker and writes synthetic evidence under `docs/evidence/`; it does not prove account plan status or induce a provider outage.

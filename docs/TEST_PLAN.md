@@ -2,22 +2,41 @@
 
 ## Automated suites
 
-| Suite | Command | Current result | Coverage |
-|---|---|---:|---|
-| TypeScript | `npm run typecheck` | PASS | App, Worker and shared contracts |
+| Suite | Command | Result | Coverage |
+| --- | --- | ---: | --- |
+| TypeScript | `npm run typecheck` | PASS | React routes, session controller, Worker, shared contracts |
 | Unit/Worker/PDF/CSV | `npm run test` | 29 passed | Math, input, Worker failures, AI response validation, review/export invariants |
-| Browser | `npm run test:e2e` | 3 passed | Sample import, unavailable model recovery, technician review and browser PDF download |
-| Production build | `npm run build` | PASS | Cloudflare Vite Worker and Static Assets build |
+| Browser | `npm run test:e2e` | 3 passed | Seven-route navigation, guards, responsive navigation, mocked schema-valid analysis, provider/malformed-response failure, review, PDF download, new report, history, invalidation |
+| Production build | `npm run build` | PASS | Cloudflare Worker and Static Assets build |
 | Runtime audit | `npm audit --omit=dev` | 0 vulnerabilities | Production dependency tree |
 | Full audit | `npm audit` | 0 vulnerabilities | Runtime and development dependency tree |
 
-The browser suite uses an intercepted API response by design. It is credential-free and must not be described as live model evidence.
+The browser suite uses an intercepted API response by design. It is credential-free and must not be described as live model evidence. Live inference is recorded separately by `npm run live-smoke` against the deployed Worker.
+
+## Route and lifecycle matrix
+
+| Check | Expected result | Evidence |
+| --- | --- | --- |
+| Direct home entry | `/` renders the standalone landing page | Playwright and `home-*` screenshots |
+| Landing navigation | Launch opens `/app/capture`; methodology and repository links work | Playwright |
+| Direct nested-route reload | Fresh reload redirects later stages to Capture with an in-memory explanation | Playwright |
+| Synthetic sample | Five labelled synthetic points load and enter Verify | Playwright and live smoke |
+| Metadata editing | Capture edits are visible and invalidate downstream work | Playwright |
+| Verify calculations | Exact signed errors, status counts, and improvement are shown | Unit tests and Playwright |
+| Browser history | Back/Forward preserves a valid mounted session | Playwright |
+| Mobile navigation | Compact menu opens, closes, and changes route | Playwright and mobile screenshots |
+| Live analyse | Real Gemma 4 response arrives through `/api/analyze` | Live smoke JSON |
+| Provider failure | Honest error remains visible and no review narrative is fabricated | Playwright and Worker tests |
+| Malformed/phantom model output | `502`/client rejection; no review state | Playwright and Worker tests |
+| Technician review | Narrative is editable and acknowledgement is explicit | Playwright |
+| Export | Browser downloads the source-matched PDF only after acknowledgement | Playwright and live PDF |
+| New report | Session clears and returns to Capture | Playwright |
+| Methodology and source links | Technical explanation and repository links are functional | Playwright |
 
 ## Functional and adversarial matrix
 
 | Check | Expected result | Evidence |
-|---|---|---|
-| Synthetic sample import | Five labelled synthetic points load | Playwright test and screenshots |
+| --- | --- | --- |
 | Real CSV with quoted/CRLF fields | PapaParse preserves valid decimal strings | `tests/csv.test.ts` |
 | Wrong/extra/duplicate headers | Explicit rejection | `tests/csv.test.ts` |
 | Duplicate IDs differing only by case | Rejection before analysis | `tests/csv.test.ts`, `tests/worker.test.ts` |
@@ -28,31 +47,32 @@ The browser suite uses an intercepted API response by design. It is credential-f
 | Scientific notation, NaN, Infinity, blank values | Rejection | `tests/calibration.test.ts`, `tests/csv.test.ts` |
 | 1–40 points | Accepted within bound; 41 rejected | `tests/csv.test.ts`, `tests/pdf.test.ts` |
 | Unexpected JSON properties | Rejection before AI | `tests/worker.test.ts` |
-| Wrong content type | `415`, no AI call | `tests/worker.test.ts`, live smoke evidence |
+| Wrong content type | `415`, no AI call | `tests/worker.test.ts`, live smoke |
 | Oversized request | `413`, no AI call | `tests/worker.test.ts` |
-| Hostile Origin | `403`, no AI call | `tests/worker.test.ts`, live smoke evidence |
+| Hostile Origin | `403`, no AI call | `tests/worker.test.ts`, live smoke |
 | Personal/global throttle | `429`, no AI call | `tests/worker.test.ts` |
-| Prompt injection in notes | Notes remain untrusted; authoritative math unchanged | `tests/worker.test.ts` |
-| Malformed/phantom model output | `502`, no fabricated narrative | `tests/worker.test.ts`, `tests/calibration.test.ts` |
+| Prompt injection and contradictory notes | Notes remain untrusted; authoritative math unchanged | `tests/worker.test.ts` |
+| Malformed/phantom model output | `502`, no fabricated narrative | `tests/worker.test.ts`, browser suite |
 | Provider exception | Safe `503`, provider details absent | `tests/worker.test.ts` |
-| Changed data after analysis | Prior result/approval invalidated; export refused | React flow and `tests/pdf.test.ts` |
-| Approval absent | Export refused | `tests/pdf.test.ts`, Playwright |
-| Long Unicode unit/notes | PDF wraps and remains multi-page | `tests/pdf.test.ts` |
+| Changed data after analysis | Prior result, approval, and export state invalidated | Browser suite and PDF tests |
+| Approval absent | Export refused | Browser suite and PDF tests |
+| Long Unicode unit/notes | PDF wraps and remains readable | `tests/pdf.test.ts`, live PDF |
 | 40-point PDF | More than one page with all rows | `tests/pdf.test.ts` |
 
 ## Live smoke evidence
 
-The dated live evidence under [`docs/evidence/live-smoke.json`](evidence/live-smoke.json) was collected against `https://calivryn.delealufejoel.workers.dev` using the actual public deployment and synthetic data. It records:
+The dated [live evidence](evidence/live-smoke.json) is collected against <https://calivryn.delealufejoel.workers.dev> using the synthetic dataset and the actual public deployment. It records:
 
+- seven-route SPA fallback checks;
 - health response and exact model ID;
-- one actual browser-generated Gemma narrative with point references;
+- one actual browser-generated Gemma narrative with existing point references;
 - Worker-authoritative `OUTSIDE` as-found and `WITHIN` as-left results;
-- technician acknowledgement and downloaded PDF filename/size;
+- responsive screenshots, technician acknowledgement, and downloaded PDF filename/size;
 - hostile-origin and wrong-content-type failures;
-- a safe sequence of additional requests to observe the edge throttle.
+- a small safe sequence of additional requests to observe edge throttling.
 
-The sequence did not produce a `429` in that run, so no stronger live claim is made about counter propagation. The binding's `429` behavior is directly tested with deterministic Worker bindings. A real provider outage was not induced; the safe throwing-binding test covers recovery behavior.
+The sequence is evidence of that run only. If it does not produce `429`, it must not be used to claim an account-wide quota. A real provider outage is not induced; the throwing-binding Worker regression test covers recovery behaviour without disrupting the public service.
 
 ## Manual acceptance
 
-Inspect desktop, tablet-width, and mobile-width captures under `docs/screenshots/`. Verify that table containers can scroll horizontally on narrow screens, focus rings are visible, buttons are keyboard reachable, error messages preserve source values, long notes wrap, and the browser PDF is opened/rendered with `pdftoppm` or a PDF viewer. The checked live PDF has two pages, all five synthetic points, full signed errors, evidence-linked observations, review actions, provenance, and the non-accreditation disclaimer.
+Inspect the screenshots under [`docs/screenshots`](screenshots) at desktop, tablet, and mobile widths. Verify that table containers scroll horizontally on narrow screens, focus rings are visible, buttons are keyboard reachable, long notes wrap, route navigation does not lose valid state, a reload does not restore stale state, and error messages preserve source values. Render [the live PDF](evidence/live-smoke-report.pdf) with a PDF viewer or Poppler and confirm pagination, headers, footers, Unicode units, all points, full-precision values, evidence links, provenance, acknowledgement, and disclaimer.

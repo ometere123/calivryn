@@ -1,6 +1,43 @@
 {
-  "checkedAt": "2026-10-18T20:07:34.573Z",
+  "checkedAt": "2026-10-18T23:00:40.378Z",
   "baseURL": "https://calivryn.delealufejoel.workers.dev",
+  "routeChecks": [
+    {
+      "path": "/",
+      "status": 200,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/app/capture",
+      "status": 200,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/app/verify",
+      "status": 200,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/app/analyse",
+      "status": 200,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/app/review",
+      "status": 200,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/app/export",
+      "status": 200,
+      "contentType": "text/html"
+    },
+    {
+      "path": "/methodology",
+      "status": 200,
+      "contentType": "text/html"
+    }
+  ],
   "health": {
     "status": 200,
     "body": {
@@ -13,7 +50,7 @@
   "analysis": {
     "status": 200,
     "model": "@cf/google/gemma-4-26b-a4b-it",
-    "generatedAt": "2026-10-18T20:07:51.732Z",
+    "generatedAt": "2026-10-18T23:01:05.971Z",
     "calculation": {
       "rows": [
         {
@@ -98,7 +135,7 @@
       "assessment_basis": "USER_SUPPLIED_ABSOLUTE_TOLERANCE"
     },
     "narrative": {
-      "summary": "Pressure transmitter PT-204-DEMO underwent calibration testing across five points from 0 to 10 bar. The as-found condition was outside of the specified absolute tolerance of 0.05 bar for four out of five measurement points. Following adjustments, the as-left condition was within tolerance for all tested points. Technician-reported notes indicate the device was inspected during a simulated bench check and appeared stable after a notional span adjustment.",
+      "summary": "Pressure transmitter PT-204-DEMO was evaluated across five measurement points. The as-found condition was determined to be outside of the specified absolute tolerance for four out of five points. Following adjustments, the as-left condition was within tolerance for all five points. Technician-reported notes indicate the device was inspected during a simulated bench check and appeared stable after a notional span adjustment.",
       "observations": [
         {
           "pointIds": [
@@ -107,7 +144,17 @@
             "P50",
             "P100"
           ],
-          "text": "As-found measurement errors exceeded the absolute tolerance of 0.05 bar at 0, 2.5, 5, and 10 bar points."
+          "text": "As-found measurements for points P00, P25, P50, and P100 exceeded the absolute tolerance of 0.05 bar."
+        },
+        {
+          "pointIds": [
+            "P00",
+            "P25",
+            "P50",
+            "P75",
+            "P100"
+          ],
+          "text": "As-left measurements for all tested points were within the specified tolerance of 0.05 bar."
         },
         {
           "pointIds": [
@@ -128,15 +175,26 @@
             "P50",
             "P100"
           ],
-          "action": "Verify as-left accuracy against tolerance requirements following the reported span adjustment."
+          "action": "Verify the effectiveness of the span adjustment used to bring as-found errors within tolerance for the as-left state."
         }
       ]
     }
   },
   "browserExport": {
     "filename": "calivryn-PT-204-DEMO-2026-10-18.pdf",
-    "bytes": 7616
+    "bytes": 7469
   },
+  "screenshots": [
+    "docs/screenshots/home-desktop.png",
+    "docs/screenshots/verify-desktop.png",
+    "docs/screenshots/capture-desktop.png",
+    "docs/screenshots/analyse-desktop.png",
+    "docs/screenshots/analyse-mobile.png",
+    "docs/screenshots/review-desktop.png",
+    "docs/screenshots/review-mobile.png",
+    "docs/screenshots/export-desktop.png",
+    "docs/screenshots/export-mobile.png"
+  ],
   "protectedFailures": {
     "hostileOrigin": {
       "status": 403,

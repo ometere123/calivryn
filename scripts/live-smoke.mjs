@@ -2,6 +2,9 @@ import { mkdir, copyFile, stat, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
 const baseURL = process.env.CALIVRYN_URL || 'https://calivryn.delealufejoel.workers.dev';
+const expectedModel = '@cf/google/gemma-4-26b-a4b-it';
+const evidenceDir = 'docs/evidence';
+const screenshotDir = 'docs/screenshots';
 const payload = {
   metadata: {
     client: 'Harbour Industrial Services (fictional)',
@@ -32,6 +35,9 @@ async function jsonFetch(path, init = {}) {
   return { status: response.status, body };
 }
 
+await mkdir(evidenceDir, { recursive: true });
+await mkdir(screenshotDir, { recursive: true });
+
 const health = await jsonFetch('/api/health', { headers: {} });
 const forbiddenOrigin = await jsonFetch('/api/analyze', {
   method: 'POST', headers: { Origin: 'https://hostile.example' }, body: JSON.stringify(payload),
@@ -40,29 +46,65 @@ const invalidContentTypeResponse = await fetch(`${baseURL}/api/analyze`, {
   method: 'POST', headers: { 'Content-Type': 'application/jsonp' }, body: JSON.stringify(payload),
 });
 
+const routeChecks = [];
+for (const path of ['/', '/app/capture', '/app/verify', '/app/analyse', '/app/review', '/app/export', '/methodology']) {
+  const response = await fetch(`${baseURL}${path}`, { redirect: 'manual' });
+  routeChecks.push({ path, status: response.status, contentType: response.headers.get('content-type') });
+}
+
 const browser = await chromium.launch();
 let analysis;
 let downloadedReport;
+const screenshotEvidence = [];
+const capture = async (page, name) => {
+  const path = `${screenshotDir}/${name}.png`;
+  await page.screenshot({ path, fullPage: true });
+  screenshotEvidence.push(path);
+};
+
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-  await page.goto(baseURL, { waitUntil: 'networkidle' });
-  await page.getByRole('button', { name: /load complete sample dataset/i }).click();
-  await page.getByRole('button', { name: /continue to ai analysis/i }).click();
+  await page.goto(`${baseURL}/`, { waitUntil: 'networkidle' });
+  await capture(page, 'home-desktop');
+  await page.getByRole('button', { name: /try sample workflow/i }).click();
+  await page.waitForURL(/\/app\/verify$/);
+  await capture(page, 'verify-desktop');
+  await page.getByRole('link', { name: /^Capture/ }).click();
+  await page.waitForURL(/\/app\/capture$/);
+  await capture(page, 'capture-desktop');
+  await page.getByRole('link', { name: /Analyse/ }).click();
+  await page.waitForURL(/\/app\/analyse$/);
+  await capture(page, 'analyse-desktop');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await capture(page, 'analyse-mobile');
+  await page.setViewportSize({ width: 1440, height: 1000 });
+
   const responsePromise = page.waitForResponse(response => response.url().endsWith('/api/analyze'));
   await page.getByRole('button', { name: /generate evidence narrative/i }).click();
   const apiResponse = await responsePromise;
   analysis = await apiResponse.json();
-  await page.getByRole('heading', { name: /intelligence meets accountability/i }).waitFor();
+  if (apiResponse.status() !== 200 || analysis?.model !== expectedModel) {
+    throw new Error(`Live analysis did not return the expected model (${apiResponse.status()}, ${analysis?.model || 'missing'})`);
+  }
+  await page.waitForURL(/\/app\/review$/);
+  await capture(page, 'review-desktop');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await capture(page, 'review-mobile');
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.getByRole('textbox', { name: /executive summary/i }).fill('Reviewed during the public synthetic smoke test.');
   await page.getByRole('checkbox').check();
   await page.getByRole('button', { name: /prepare final report/i }).click();
+  await page.waitForURL(/\/app\/export$/);
+  await capture(page, 'export-desktop');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await capture(page, 'export-mobile');
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: /download pdf report/i }).click();
   const download = await downloadPromise;
   const tempPath = await download.path();
   if (!tempPath) throw new Error('Browser did not expose the downloaded PDF path');
-  await mkdir('docs/evidence', { recursive: true });
   downloadedReport = { filename: download.suggestedFilename(), bytes: (await stat(tempPath)).size };
-  await copyFile(tempPath, 'docs/evidence/live-smoke-report.pdf');
+  await copyFile(tempPath, `${evidenceDir}/live-smoke-report.pdf`);
 } finally {
   await browser.close();
 }
@@ -75,10 +117,10 @@ for (let index = 0; index < 4; index += 1) {
   quotaStatuses.push({ status: result.status, code: result.body?.error?.code || 'SUCCESS' });
 }
 
-await mkdir('docs/evidence', { recursive: true });
-await writeFile('docs/evidence/live-smoke.json', `${JSON.stringify({
+await writeFile(`${evidenceDir}/live-smoke.json`, `${JSON.stringify({
   checkedAt: new Date().toISOString(),
   baseURL,
+  routeChecks,
   health,
   analysis: {
     status: analysis?.model ? 200 : 'unknown',
@@ -88,6 +130,7 @@ await writeFile('docs/evidence/live-smoke.json', `${JSON.stringify({
     narrative: analysis?.narrative,
   },
   browserExport: downloadedReport,
+  screenshots: screenshotEvidence,
   protectedFailures: {
     hostileOrigin: forbiddenOrigin,
     invalidContentType: { status: invalidContentTypeResponse.status },
@@ -96,4 +139,4 @@ await writeFile('docs/evidence/live-smoke.json', `${JSON.stringify({
   },
 }, null, 2)}\n`, 'utf8');
 
-console.log(JSON.stringify({ baseURL, model: analysis?.model, browserExport: downloadedReport, quotaStatuses }, null, 2));
+console.log(JSON.stringify({ baseURL, model: analysis?.model, browserExport: downloadedReport, routeChecks, quotaStatuses }, null, 2));
