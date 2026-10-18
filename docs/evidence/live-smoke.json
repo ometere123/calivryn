@@ -1,0 +1,173 @@
+{
+  "checkedAt": "2026-10-18T19:58:51.560Z",
+  "baseURL": "https://calivryn.delealufejoel.workers.dev",
+  "health": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "model": "@cf/google/gemma-4-26b-a4b-it",
+      "inference": "LIVE_BINDING_REQUIRED",
+      "storage": false
+    }
+  },
+  "analysis": {
+    "status": 200,
+    "model": "@cf/google/gemma-4-26b-a4b-it",
+    "generatedAt": "2026-10-18T19:59:14.626Z",
+    "calculation": {
+      "rows": [
+        {
+          "point_id": "P00",
+          "reference": "0",
+          "as_found": "0.11",
+          "as_left": "0.01",
+          "tolerance": "0.05",
+          "as_found_error": "0.11",
+          "as_left_error": "0.01",
+          "as_found_absolute_error": "0.11",
+          "as_left_absolute_error": "0.01",
+          "as_found_pass": false,
+          "as_left_pass": true,
+          "change": "improved"
+        },
+        {
+          "point_id": "P25",
+          "reference": "2.5",
+          "as_found": "2.59",
+          "as_left": "2.52",
+          "tolerance": "0.05",
+          "as_found_error": "0.09",
+          "as_left_error": "0.02",
+          "as_found_absolute_error": "0.09",
+          "as_left_absolute_error": "0.02",
+          "as_found_pass": false,
+          "as_left_pass": true,
+          "change": "improved"
+        },
+        {
+          "point_id": "P50",
+          "reference": "5",
+          "as_found": "5.06",
+          "as_left": "5.01",
+          "tolerance": "0.05",
+          "as_found_error": "0.06",
+          "as_left_error": "0.01",
+          "as_found_absolute_error": "0.06",
+          "as_left_absolute_error": "0.01",
+          "as_found_pass": false,
+          "as_left_pass": true,
+          "change": "improved"
+        },
+        {
+          "point_id": "P75",
+          "reference": "7.5",
+          "as_found": "7.52",
+          "as_left": "7.50",
+          "tolerance": "0.05",
+          "as_found_error": "0.02",
+          "as_left_error": "0",
+          "as_found_absolute_error": "0.02",
+          "as_left_absolute_error": "0",
+          "as_found_pass": true,
+          "as_left_pass": true,
+          "change": "improved"
+        },
+        {
+          "point_id": "P100",
+          "reference": "10",
+          "as_found": "9.92",
+          "as_left": "9.98",
+          "tolerance": "0.05",
+          "as_found_error": "-0.08",
+          "as_left_error": "-0.02",
+          "as_found_absolute_error": "0.08",
+          "as_left_absolute_error": "0.02",
+          "as_found_pass": false,
+          "as_left_pass": true,
+          "change": "improved"
+        }
+      ],
+      "count": 5,
+      "as_found_passed": 1,
+      "as_left_passed": 5,
+      "as_found_overall": "OUTSIDE",
+      "as_left_overall": "WITHIN",
+      "improved": 5,
+      "unchanged": 0,
+      "deteriorated": 0,
+      "assessment_basis": "USER_SUPPLIED_ABSOLUTE_TOLERANCE"
+    },
+    "narrative": {
+      "summary": "Pressure transmitter PT-204-DEMO underwent calibration testing across five points from 0 to 10 bar. As-found measurements were outside of the specified absolute tolerance of 0.05 bar for four out of five points. Following a notional span adjustment, as-left measurements were within the specified tolerance for all tested points. Technician-reported notes indicate the sensor appeared stable during a simulated bench check.",
+      "observations": [
+        {
+          "pointIds": [
+            "P00",
+            "P25",
+            "P50",
+            "P100"
+          ],
+          "text": "As-found measurement errors exceeded the absolute tolerance of 0.05 bar at 0, 2.5, 5, and 10 bar points."
+        },
+        {
+          "pointIds": [
+            "P00",
+            "P25",
+            "P50",
+            "P75",
+            "P100"
+          ],
+          "text": "Technician-reported notes state the device was inspected during a simulated bench check and the sensor appeared stable after a notional span adjustment."
+        }
+      ],
+      "reviewItems": [
+        {
+          "pointIds": [
+            "P00",
+            "P25",
+            "P50",
+            "P100"
+          ],
+          "action": "Verify as-left compliance for all points following the reported span adjustment."
+        }
+      ]
+    }
+  },
+  "browserExport": {
+    "filename": "calivryn-PT-204-DEMO-2026-10-18.pdf",
+    "bytes": 7581
+  },
+  "protectedFailures": {
+    "hostileOrigin": {
+      "status": 403,
+      "body": {
+        "error": {
+          "code": "FORBIDDEN_ORIGIN",
+          "message": "Only same-origin submissions are accepted"
+        }
+      }
+    },
+    "invalidContentType": {
+      "status": 415
+    },
+    "quotaSequence": [
+      {
+        "status": 200,
+        "code": "SUCCESS"
+      },
+      {
+        "status": 200,
+        "code": "SUCCESS"
+      },
+      {
+        "status": 200,
+        "code": "SUCCESS"
+      },
+      {
+        "status": 200,
+        "code": "SUCCESS"
+      }
+    ],
+    "providerFailure": "Covered by the Worker regression test with a throwing AI binding; no live provider outage was induced."
+  }
+}

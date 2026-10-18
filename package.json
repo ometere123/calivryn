@@ -14,13 +14,17 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "screenshots": "node scripts/capture-screenshots.mjs",
+    "live-smoke": "node scripts/live-smoke.mjs",
     "typecheck": "tsc -p tsconfig.app.json && tsc -p tsconfig.worker.json",
     "check": "npm run typecheck && npm run test && npm run build"
   },
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "decimal.js": "^10.6.0",
-    "jspdf": "^3.0.0",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.468.0",
     "papaparse": "^5.5.3",
     "react": "^19.0.0",
@@ -39,7 +43,7 @@
     "tailwindcss": "^4.0.0",
     "typescript": "^5.8.0",
     "vite": "^7.0.0",
-    "vitest": "^3.2.0",
+    "vitest": "^5.0.5",
     "wrangler": "^4.36.0"
   }
 }
