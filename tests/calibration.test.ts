@@ -50,6 +50,26 @@ describe('deterministic calibration', () => {
     changed.metadata.notes = 'a'.repeat(2001);
     expect(reportInputSchema.safeParse(changed).success).toBe(false);
   });
+  it('accepts supported negative, tiny and Unicode engineering-unit values', () => {
+    const changed = structuredClone(input);
+    changed.metadata.unit = 'mΩ/°C·s⁻¹';
+    changed.points = [{ point_id: 'TINY', reference: '-0.00000001', as_found: '-0.00000000', as_left: '-0.00000001', tolerance: '0.00000001' }];
+    expect(reportInputSchema.safeParse(changed).success).toBe(true);
+    expect(calculateReport(changed).rows[0]).toMatchObject({ as_found_error: '0.00000001', as_left_error: '0', as_left_pass: true });
+  });
+  it('rejects scientific notation, non-finite values, unexpected properties and oversized units', () => {
+    const changed = structuredClone(input) as ReportInput & { extra?: string };
+    changed.extra = 'unexpected';
+    expect(reportInputSchema.safeParse(changed).success).toBe(false);
+    for (const value of ['1e-8', 'NaN', 'Infinity', '-Infinity']) {
+      const invalid = structuredClone(input);
+      invalid.points[0].as_found = value;
+      expect(reportInputSchema.safeParse(invalid).success).toBe(false);
+    }
+    const invalidUnit = structuredClone(input);
+    invalidUnit.metadata.unit = 'u'.repeat(49);
+    expect(reportInputSchema.safeParse(invalidUnit).success).toBe(false);
+  });
   it('rejects phantom point citations and schema-incomplete narratives', () => {
     const calc = calculateReport(input);
     const narrative = { summary: 'Human review required.', observations: [{ pointIds: ['GHOST'], text: 'Invalid citation' }], reviewItems: [{ pointIds: ['A'], action: 'Confirm reference source' }] };

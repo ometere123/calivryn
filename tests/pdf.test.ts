@@ -34,4 +34,21 @@ describe('PDF safety and rendering', () => {
     expect(bytes.getNumberOfPages()).toBeGreaterThan(1);
     expect(bytes.output('arraybuffer').byteLength).toBeGreaterThan(4000);
   });
+  it('wraps long Unicode units and long notes without dropping the report', () => {
+    const longInput: ReportInput = {
+      ...source,
+      metadata: {
+        ...source.metadata,
+        unit: 'milliohm·metre/°C·s⁻¹',
+        project: 'Long PDF wrapping project description. '.repeat(2) + 'final report',
+        notes: 'Unicode note Ω µ °C. '.repeat(80),
+      },
+      points: [{ point_id: 'LONG', reference: '-123456789012.12345678', as_found: '-123456789011.12345678', as_left: '-123456789012.12345678', tolerance: '0.00000001' }],
+    };
+    const calculation = calculateReport(longInput);
+    const data: Analysis = { ...report, calculation, narrative: { ...report.narrative, summary: 'Unicode and long-text synthetic evidence.', observations: [{ pointIds: ['LONG'], text: 'Long Unicode evidence.' }], reviewItems: [{ pointIds: ['LONG'], action: 'Review the supplied tolerance.' }] } };
+    const bytes = createReportPdf(longInput, data, data.narrative, true);
+    expect(bytes.getNumberOfPages()).toBeGreaterThan(1);
+    expect(bytes.output('arraybuffer').byteLength).toBeGreaterThan(4000);
+  });
 });

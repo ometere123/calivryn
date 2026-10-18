@@ -7,6 +7,7 @@ Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP, toExpNeg: -45, toE
 
 export const MAX_POINTS = 40;
 export const MAX_CSV_BYTES = 30_000;
+export const MAX_UNIT_LENGTH = 48;
 export const MODEL_ID = '@cf/google/gemma-4-26b-a4b-it' as const;
 export const REQUIRED_CSV_HEADERS = ['point_id', 'reference', 'as_found', 'as_left', 'tolerance'] as const;
 
@@ -26,7 +27,7 @@ export const metadataSchema = z.object({
   instrumentType: boundedText(80),
   technician: boundedText(80),
   date: dateText,
-  unit: z.string().trim().min(1).max(18).regex(/^[\p{L}\p{N}°%µμΩ\/\-_. ]+$/u, 'Use a short engineering unit'),
+  unit: z.string().trim().min(1).max(MAX_UNIT_LENGTH).regex(/^[\p{L}\p{N}°%µμΩ·×⁻⁺¹²³⁴⁵⁶⁷⁸⁹\/\-_. ()@]+$/u, 'Use a plain engineering unit with common symbols'),
   notes: z.string().max(2000),
 }).strict();
 

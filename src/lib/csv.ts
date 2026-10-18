@@ -22,11 +22,18 @@ export async function parseCalibrationCsv(file: File): Promise<PointInput[]> {
   if (parsed.data.length < 1 || parsed.data.length > MAX_POINTS) {
     throw new Error(`CSV must contain between 1 and ${MAX_POINTS} readings`);
   }
-  return parsed.data.map((row, index) => {
+  const points = parsed.data.map((row, index) => {
     const result = pointSchema.safeParse(row);
     if (!result.success) throw new Error(`CSV row ${index + 2}: ${result.error.issues[0].path.join('.')}: ${result.error.issues[0].message}`);
     return result.data;
   });
+  const ids = new Set<string>();
+  for (const [index, point] of points.entries()) {
+    const normalized = point.point_id.toLowerCase();
+    if (ids.has(normalized)) throw new Error(`CSV row ${index + 2}: point_id: Duplicate point ID`);
+    ids.add(normalized);
+  }
+  return points;
 }
 
 export function downloadCsvTemplate(content: string) {

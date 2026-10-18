@@ -10,6 +10,11 @@ const INK: [number, number, number] = [19, 45, 52];
 const MUTED: [number, number, number] = [94, 111, 117];
 const GREEN: [number, number, number] = [47, 123, 91];
 const RED: [number, number, number] = [178, 76, 59];
+const PDF_CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+
+function pdfSafeText(value: string): string {
+  return value.replace(/\r\n?/g, '\n').replace(PDF_CONTROL_CHARS, '�');
+}
 
 export function createReportPdf(input: ReportInput, analysis: Analysis, editable: Narrative, approved: boolean): jsPDF {
   if (!approved) throw new Error('Technician review acknowledgement is required');
@@ -43,7 +48,7 @@ export function createReportPdf(input: ReportInput, analysis: Analysis, editable
   }
   function paragraph(text: string, size = 9, color = INK) {
     pdf.setFont('helvetica', 'normal'); pdf.setFontSize(size); pdf.setTextColor(...color);
-    const lines = pdf.splitTextToSize(text || 'Not provided.', WIDTH) as string[];
+    const lines = pdf.splitTextToSize(pdfSafeText(text || 'Not provided.'), WIDTH) as string[];
     const height = size * 0.44 + 2.0;
     for (const line of lines) { ensure(height + 1); pdf.text(line, LEFT, y); y += height; }
     y += 2;
@@ -68,17 +73,25 @@ export function createReportPdf(input: ReportInput, analysis: Analysis, editable
   heading('Measurements and computed deviations');
   // Full-precision values are never truncated, rounded or silently hidden in this report.
   for (const [index, point] of authoritative.rows.entries()) {
-    ensure(24);
-    if (index % 2 === 0) { pdf.setFillColor(247, 250, 247); pdf.roundedRect(LEFT, y - 5, WIDTH, 20.5, 2, 2, 'F'); }
+    const innerWidth = WIDTH - 6;
+    const headerText = pdfSafeText(`POINT ${point.point_id}  |  Reference ${point.reference} ${input.metadata.unit}  |  Tolerance +/- ${point.tolerance} ${input.metadata.unit}`);
+    const foundText = pdfSafeText(`FOUND   ${point.as_found} ${input.metadata.unit}   |   signed error ${point.as_found_error}   |   ${point.as_found_pass ? 'WITHIN' : 'OUTSIDE'} tolerance`);
+    const leftText = pdfSafeText(`LEFT        ${point.as_left} ${input.metadata.unit}   |   signed error ${point.as_left_error}   |   ${point.as_left_pass ? 'WITHIN' : 'OUTSIDE'} tolerance`);
+    const headerLines = pdf.splitTextToSize(headerText, innerWidth) as string[];
+    const foundLines = pdf.splitTextToSize(foundText, innerWidth) as string[];
+    const leftLines = pdf.splitTextToSize(leftText, innerWidth) as string[];
+    const headerHeight = headerLines.length * 4.2;
+    const valueHeight = (foundLines.length + leftLines.length) * 4.2;
+    const cardHeight = headerHeight + valueHeight + 7;
+    ensure(cardHeight + 2);
+    if (index % 2 === 0) { pdf.setFillColor(247, 250, 247); pdf.roundedRect(LEFT, y - 5, WIDTH, cardHeight, 2, 2, 'F'); }
     pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8.3); pdf.setTextColor(...INK);
-    pdf.text(`POINT ${point.point_id}  |  Reference ${point.reference} ${input.metadata.unit}  |  Tolerance +/- ${point.tolerance} ${input.metadata.unit}`, LEFT + 3, y);
-    y += 6;
+    for (const line of headerLines) { pdf.text(line, LEFT + 3, y); y += 4.2; }
     pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8); pdf.setTextColor(...(point.as_found_pass ? GREEN : RED));
-    pdf.text(`FOUND   ${point.as_found} ${input.metadata.unit}   |   signed error ${point.as_found_error}   |   ${point.as_found_pass ? 'WITHIN' : 'OUTSIDE'} tolerance`, LEFT + 3, y);
-    y += 5.5;
+    for (const line of foundLines) { pdf.text(line, LEFT + 3, y); y += 4.2; }
     pdf.setTextColor(...(point.as_left_pass ? GREEN : RED));
-    pdf.text(`LEFT        ${point.as_left} ${input.metadata.unit}   |   signed error ${point.as_left_error}   |   ${point.as_left_pass ? 'WITHIN' : 'OUTSIDE'} tolerance`, LEFT + 3, y);
-    y += 10;
+    for (const line of leftLines) { pdf.text(line, LEFT + 3, y); y += 4.2; }
+    y += 3;
   }
   paragraph('Each error is measurement minus reference; absolute error is compared to the per-point absolute tolerance. All values are printed as entered or calculated, without rounding. No uncertainty or traceability claim is made.', 7.7, MUTED);
 

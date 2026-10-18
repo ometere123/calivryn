@@ -18,6 +18,8 @@ jobs:
       - run: npm run typecheck
       - run: npm run test
       - run: npm run build
+      - run: npm audit --omit=dev
+      - run: npm audit
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 20

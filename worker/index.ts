@@ -16,6 +16,8 @@ const HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'no-referrer',
   'X-Frame-Options': 'DENY',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
 };
 const BODY_LIMIT = 45_000;
 function json(data: unknown, status = 200): Response {
@@ -53,7 +55,8 @@ export default {
     if (request.method !== 'POST') return error('METHOD_NOT_ALLOWED', 'Use POST for analysis', 405);
     const origin = request.headers.get('Origin');
     if (origin && origin !== url.origin) return error('FORBIDDEN_ORIGIN', 'Only same-origin submissions are accepted', 403);
-    if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
+    const contentType = request.headers.get('content-type')?.split(';', 1)[0]?.trim().toLowerCase();
+    if (contentType !== 'application/json') {
       return error('CONTENT_TYPE', 'Content-Type must be application/json', 415);
     }
     let body: unknown;
@@ -75,7 +78,7 @@ export default {
         return error('SERVICE_NOT_CONFIGURED', 'Cloudflare AI or rate-limit binding is not configured', 503);
       }
       // With no accounts/database, identity is necessarily approximate. Edge-local protection, not a global daily quota.
-      const ip = request.headers.get('CF-Connecting-IP') || 'local-or-unknown';
+      const ip = (request.headers.get('CF-Connecting-IP') || 'local-or-unknown').slice(0, 128);
       const [personal, global] = await Promise.all([
         env.AI_RATE_LIMITER.limit({ key: `analyze:${ip}` }),
         env.GLOBAL_AI_BUDGET.limit({ key: 'shared-inference-budget' }),
