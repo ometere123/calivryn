@@ -2,7 +2,7 @@
 
 **Precision is measured. Clarity is generated.**
 
-Calivryn is an open-source calibration **service report preparation** application. It evaluates technician-supplied measurement data with deterministic decimal arithmetic, calls the actual Google Gemma 4 26B A4B open-weight model through Cloudflare Workers AI to create an evidence-linked narrative, requires human review, and exports a PDF in the user's browser.
+Calivryn is an open-source calibration **service report preparation** application. It evaluates technician-supplied measurement data with deterministic decimal arithmetic, is designed to call the actual Google Gemma 4 26B A4B open-weight model through Cloudflare Workers AI to create an evidence-linked narrative, requires human review, and exports a PDF in the user's browser.
 
 > **Not an accredited calibration certificate.** Calivryn does not verify traceability, measurement uncertainty, reference standards, instrument condition or safety-to-operate. The technician supplies and assumes responsibility for the tolerance criteria and report contents.
 
@@ -79,7 +79,7 @@ Changing source measurements or metadata invalidates prior AI output and approva
 
 - Input stays in the browser before AI analysis; when analysis is requested, metadata, readings and notes are transmitted to Cloudflare Workers AI. **This is not an offline/private-local AI system.** Provider processing and platform log practices are governed by Cloudflare terms.
 - Calivryn implements no intentional database, account, report history, analytics or localStorage persistence.
-- The Worker validates the request again, limits body size to 45 KB, restricts origins, requires JSON and rate-limits model calls by a coarse client IP plus an edge-level shared throttle.
+- The Worker validates the request again, limits body size to 45 KB, restricts origins, requires JSON and rate-limits model calls by a coarse client IP plus an edge-level shared throttle. Gemma 4 inference is configured with thinking disabled for lower output overhead and a narrower JSON contract.
 - Rate limits operate per Cloudflare location. They **do not enforce an exact account-wide daily neuron budget**; the operator must monitor the free AI allocation in Cloudflare. Never enable paid overages without approval.
 - Synthetic data are supplied for demonstrations. Do not upload identifiable or confidential customer data without lawful permission.
 

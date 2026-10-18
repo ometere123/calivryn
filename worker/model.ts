@@ -1,7 +1,7 @@
 import { MODEL_ID, type Calculation, type Metadata, type Narrative, validateNarrative } from '../shared/calibration';
 
 export interface AiBinding {
-  run(model: string, input: { messages: { role: 'system' | 'user'; content: string }[]; max_tokens: number; temperature: number; stream: false }): Promise<unknown>;
+  run(model: string, input: { messages: { role: 'system' | 'user'; content: string }[]; max_tokens: number; temperature: number; stream: false; chat_template_kwargs: { enable_thinking: boolean } }): Promise<unknown>;
 }
 
 export class ModelError extends Error {
@@ -75,6 +75,7 @@ export async function generateNarrative(binding: AiBinding, metadata: Metadata, 
       temperature: 0.15,
       max_tokens: 1200,
       stream: false,
+      chat_template_kwargs: { enable_thinking: false },
     });
   } catch {
     // Do not leak Cloudflare/provider messages or raw input into responses or logs.
