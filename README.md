@@ -170,7 +170,7 @@ npx wrangler login
 npm run deploy
 ```
 
-The public application is [calivryn.delealufejoel.workers.dev](https://calivryn.delealufejoel.workers.dev). Deployment does not enable billing or paid overages. The current release was operated without intentionally provisioning paid services; the operator must still confirm the account plan and Workers AI allocation in Cloudflare. A missing billing-read permission prevents an independent API confirmation of the account plan, so this repository does not claim more than the available account evidence.
+The public application is [calivryn.delealufejoel.workers.dev](https://calivryn.delealufejoel.workers.dev). Deployment does not enable billing or paid overages. The account owner confirms that this project is on Cloudflare's Free plan and has never paid for Cloudflare; that is an owner-confirmed account fact, not an independent billing-API verification. A missing billing-read permission prevents that API confirmation. Workers AI capacity and allocation remain provider-level constraints.
 
 For a genuine release smoke test:
 
@@ -182,7 +182,7 @@ The script checks the seven SPA routes, loads the synthetic dataset in a real br
 
 ## Release and submission evidence
 
-- [GitHub Actions](https://github.com/ometere123/Calivryn/actions) — source-matched CI history.
+- [Final application CI run](https://github.com/ometere123/Calivryn/actions/runs/39174887202) — green source-matched checks for the verified application release.
 - [Live smoke JSON](docs/evidence/live-smoke.json) — model, route, calculation, failure, and export evidence.
 - [Generated sample PDF](docs/evidence/live-smoke-report.pdf) — browser export from the synthetic workflow.
 - [Screenshots](docs/screenshots) — real landing, workspace, responsive, review, and export views.
@@ -191,11 +191,11 @@ The script checks the seven SPA routes, loads the synthetic dataset in a real br
 
 ## DEV Hacktoberfest Week 2 submission
 
-The ready-to-publish article follows the official Week 2 submission structure: What I Built, Demo, Code, How I Built It, Why Does Open Innovation Matter?, My Agent Session, and Prize Categories. It explains the customer problem, a pricing hypothesis, the real production evidence, the engineering failures that were fixed, and the honest limitations.
+The ready-to-publish article follows the official Week 2 submission structure: What I built, Demo, Code, How I built it, Why does open innovation matter?, and Prize categories. Optional agent-session and first-user sections are omitted because no authentic session link or paying first user is claimed.
 
 - [Complete DEV submission copy](docs/DEV_SUBMISSION.md)
 - [Demonstration plan](docs/DEMO_PLAN.md)
-- Intended category targets: overall **Side Hustle** and **Best Use of Gemma**, without claiming eligibility, judging outcome, customer adoption, or victory.
+- Intended category target: **Best Use of Gemma**, within the Week 2 **Side Hustle** theme, without claiming eligibility, judging outcome, customer adoption, or victory.
 
 ## Licence and model terms
 
