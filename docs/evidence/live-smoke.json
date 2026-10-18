@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-18T19:58:51.560Z",
+  "checkedAt": "2026-10-18T20:07:34.573Z",
   "baseURL": "https://calivryn.delealufejoel.workers.dev",
   "health": {
     "status": 200,
@@ -13,7 +13,7 @@
   "analysis": {
     "status": 200,
     "model": "@cf/google/gemma-4-26b-a4b-it",
-    "generatedAt": "2026-10-18T19:59:14.626Z",
+    "generatedAt": "2026-10-18T20:07:51.732Z",
     "calculation": {
       "rows": [
         {
@@ -98,7 +98,7 @@
       "assessment_basis": "USER_SUPPLIED_ABSOLUTE_TOLERANCE"
     },
     "narrative": {
-      "summary": "Pressure transmitter PT-204-DEMO underwent calibration testing across five points from 0 to 10 bar. As-found measurements were outside of the specified absolute tolerance of 0.05 bar for four out of five points. Following a notional span adjustment, as-left measurements were within the specified tolerance for all tested points. Technician-reported notes indicate the sensor appeared stable during a simulated bench check.",
+      "summary": "Pressure transmitter PT-204-DEMO underwent calibration testing across five points from 0 to 10 bar. The as-found condition was outside of the specified absolute tolerance of 0.05 bar for four out of five measurement points. Following adjustments, the as-left condition was within tolerance for all tested points. Technician-reported notes indicate the device was inspected during a simulated bench check and appeared stable after a notional span adjustment.",
       "observations": [
         {
           "pointIds": [
@@ -117,7 +117,7 @@
             "P75",
             "P100"
           ],
-          "text": "Technician-reported notes state the device was inspected during a simulated bench check and the sensor appeared stable after a notional span adjustment."
+          "text": "Technician-reported notes state the sensor appeared stable after a notional span adjustment during a simulated bench check."
         }
       ],
       "reviewItems": [
@@ -128,14 +128,14 @@
             "P50",
             "P100"
           ],
-          "action": "Verify as-left compliance for all points following the reported span adjustment."
+          "action": "Verify as-left accuracy against tolerance requirements following the reported span adjustment."
         }
       ]
     }
   },
   "browserExport": {
     "filename": "calivryn-PT-204-DEMO-2026-10-18.pdf",
-    "bytes": 7581
+    "bytes": 7616
   },
   "protectedFailures": {
     "hostileOrigin": {
