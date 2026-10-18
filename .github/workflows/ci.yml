@@ -15,6 +15,11 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
+      - uses: actions/upload-artifact@v4
+        with:
+          name: candidate-npm-lockfile
+          path: package-lock.json
+          retention-days: 1
       - run: npm run typecheck
       - run: npm run test
       - run: npm run build

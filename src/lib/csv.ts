@@ -12,7 +12,8 @@ export async function parseCalibrationCsv(file: File): Promise<PointInput[]> {
     transformHeader: (header: string) => header.trim(),
     dynamicTyping: false,
   });
-  if (parsed.errors.length) throw new Error(`CSV error on row ${parsed.errors[0].row + 2}: ${parsed.errors[0].message}`);
+  const firstError = parsed.errors.at(0);
+  if (firstError) throw new Error(`CSV error on row ${(firstError.row ?? 0) + 2}: ${firstError.message}`);
   const headers = parsed.meta.fields ?? [];
   if (new Set(headers).size !== headers.length || headers.length !== REQUIRED_CSV_HEADERS.length ||
       !REQUIRED_CSV_HEADERS.every(header => headers.includes(header))) {

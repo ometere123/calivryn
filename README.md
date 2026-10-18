@@ -91,7 +91,7 @@ See [architecture](docs/ARCHITECTURE.md) and [risk boundaries](docs/SECURITY.md)
 npm run test          # math, invalid inputs, Worker validation and model failures
 npm run typecheck
 npm run build
-npm run test:e2e      # browser test against local Cloudflare Vite environment
+npm run test:e2e      # offline browser harness with intercepted API; no live inference claim
 ```
 
 Unit tests may stub the model to assert rejection behavior; **only a publicly hosted smoke test with real `env.AI.run()` proves working inference**. Neither mock tests nor the health endpoint may be presented as live-inference evidence.
